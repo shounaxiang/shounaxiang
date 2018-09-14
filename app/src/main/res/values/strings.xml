@@ -3,4 +3,28 @@
     <string name="title_query">查看</string>
     <string name="title_add">添加</string>
     <string name="title_mine">我的</string>
+    <string name="portrait">头像</string>
+
+    <string name="nickname">昵称</string>
+    <string name="my_nickname">我的昵称</string>
+
+    <string name="sex">性别</string>
+    <string name="my_sex">男</string>
+
+    <string name="birth">生日</string>
+    <string name="my_birth">2018-09-12</string>
+
+    <string name="room_view">室迹通览</string>
+    <string name="info_acount">账号信息</string>
+    <string name="feedback">意见反馈</string>
+    <string name="exit_login">退出登录</string>
+    <string name="input_nickname">请输入昵称</string>
+    <string name="btn_ok">确认</string>
+    <string name="btn_cancel">取消</string>
+    <string name="login_user_name_hint">手机号码或邮件</string>
+    <string name="login_user_name_password">密码</string>
+    <string name="action_sign_in">登录</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="register">注册</string>
+    <string name="title_activity_login">LoginActivity</string>
 </resources>

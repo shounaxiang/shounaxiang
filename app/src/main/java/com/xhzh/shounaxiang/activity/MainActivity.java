@@ -1,5 +1,8 @@
 package com.xhzh.shounaxiang.activity;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -8,17 +11,29 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.xhzh.shounaxiang.R;
 
+import org.w3c.dom.Text;
+
+import java.security.cert.LDAPCertStoreParameters;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    LinearLayout my_sex;
+    LinearLayout my_birth;
+    LinearLayout my_nickname;
 
     private static boolean firstClickBack = false;
     private static final int EXIT = 0;
@@ -117,7 +132,26 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 2:
                     navigation.setSelectedItemId(R.id.navigation_mine);
+                    //my_sex的Popmenu
+                    my_sex = findViewById(R.id.my_sex);
+                    my_sex.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            showPopMenu(view);
+                        }
+                    });
+                    //my_birth的日期选择器
+                    my_birth = findViewById(R.id.my_birth);
+                    initDialog();
+                    my_nickname = findViewById(R.id.my_nickname);
+                    my_nickname.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showAlertDialog();
+                        }
+                    });
                     break;
+
             }
         }
 
@@ -138,4 +172,97 @@ public class MainActivity extends AppCompatActivity {
            finish();
         }
     }
+
+//    my_sex的点击选择PopMenu
+    public void showPopMenu(View view){
+        PopupMenu menu = new PopupMenu(this,view);
+        menu.getMenuInflater().inflate(R.menu.sex_menu,menu.getMenu());
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.male_item:
+                        Toast.makeText(MainActivity.this, "male", Toast.LENGTH_SHORT).show();
+                        break;
+
+                    case R.id.female_item:
+                        Toast.makeText(MainActivity.this, "female", Toast.LENGTH_SHORT).show();
+                        break;
+
+                }
+                return true;
+            }
+        });
+        menu.setOnDismissListener(new PopupMenu.OnDismissListener() {
+            @Override
+            public void onDismiss(PopupMenu menu) {
+                Toast.makeText(MainActivity.this, "关闭了", Toast.LENGTH_SHORT).show();
+            }
+        });
+        menu.show();
+    }
+
+    private void initDialog() {
+
+        /**
+         * 弹出日期选择对话框
+         */
+        my_birth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar c = Calendar.getInstance();
+                int year=c.get(Calendar.YEAR);
+                int month=c.get(Calendar.MONTH);
+                final int day=c.get(Calendar.DAY_OF_MONTH);
+
+                DatePickerDialog datePickerDialog = new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        Toast.makeText(MainActivity.this,year+"年"+(month+1)+"月"+dayOfMonth+"日",Toast.LENGTH_SHORT).show();
+                    }
+                },year,month,day);
+
+                datePickerDialog.show();
+
+            }
+        });
+
+    }
+    private void showAlertDialog() {
+        View view = getLayoutInflater().inflate(R.layout.alert_dialog, null);
+        final EditText etContent = (EditText) view.findViewById(R.id.et_nickname);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("昵称")
+                .setView(view)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String str = etContent.getText().toString();
+                        if (isNullEmptyBlank(str)) {
+                            etContent.setError("输入内容不能为空");
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(MainActivity.this, etContent.getText().toString(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }).create();
+        dialog.show();
+    }
+    private static boolean isNullEmptyBlank(String str) {
+        if (str == null || "".equals(str) || "".equals(str.trim()))
+            return true;
+        else
+            return false;
+    }
+
+
 }
+
+
+
