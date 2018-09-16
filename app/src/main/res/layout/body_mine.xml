@@ -88,7 +88,7 @@
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/tx_my_nickname"
+                android:id="@+id/tv_nickname"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -131,7 +131,7 @@
                     android:textSize="16sp"
                     android:textColor="@color/black"/>
                 <TextView
-                    android:id="@+id/tx_my_sex"
+                    android:id="@+id/tv_my_sex"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
@@ -172,7 +172,7 @@
                 android:textSize="16sp"
                 android:textColor="@color/black"/>
             <TextView
-                android:id="@+id/tx_my_birth"
+                android:id="@+id/tv_my_birth"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -197,20 +197,7 @@
         android:text="@string/room_view"
         android:textColor="@color/black"
         android:textSize="16.0sp" />
-    <TextView
-        android:id="@+id/info_acount"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginTop="6dp"
-        android:background="@color/my_page_background"
-        android:clickable="true"
-        android:drawableRight="@mipmap/setting_arrow"
-        android:gravity="center_vertical"
-        android:padding="11dp"
-        android:text="@string/info_acount"
-        android:textColor="@color/black"
-        android:textSize="16.0sp" />
+
     <TextView
         android:id="@+id/feedback"
         android:layout_width="match_parent"
@@ -226,7 +213,7 @@
         android:textColor="@color/black"
         android:textSize="16.0sp" />
     <TextView
-        android:id="@+id/exit_login"
+        android:id="@+id/tv_logout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
@@ -235,7 +222,7 @@
         android:clickable="true"
         android:gravity="center"
         android:padding="11dp"
-        android:text="@string/exit_login"
+        android:text="@string/logout"
         android:textColor="@color/app_red"
         android:textSize="16.0sp" />
 </LinearLayout>

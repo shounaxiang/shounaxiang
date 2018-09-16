@@ -19,4 +19,9 @@
     <color name="lightgreen">#8bfc8f</color>
     <color name="right_menu_bg">#ede2e4</color>
     <color name="my_page_background">#fff6f6</color>
+
+    <color name="background_gray">#F6F7F9</color>
+    <color name="background_color">#F5F6F8</color>
+    <color name="font_gray">#7B7B7B</color>
+    <color name="font_black">#000000</color>
 </resources>

@@ -17,7 +17,7 @@
     <string name="room_view">室迹通览</string>
     <string name="info_acount">账号信息</string>
     <string name="feedback">意见反馈</string>
-    <string name="exit_login">退出登录</string>
+    <string name="logout">退出登录</string>
     <string name="input_nickname">请输入昵称</string>
     <string name="btn_ok">确认</string>
     <string name="btn_cancel">取消</string>

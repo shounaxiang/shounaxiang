@@ -15,16 +15,19 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="8dp"
         android:visibility="gone"/>
+
     <ScrollView
         android:id="@+id/form_login"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="false">
+
         <LinearLayout
             android:id="@+id/email_login_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <android.support.design.widget.TextInputLayout
                 android:id="@+id/input_user_name"
                 android:layout_width="match_parent"
@@ -36,10 +39,9 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/login_user_name_hint"
                     android:imeOptions="actionNext"
-                    android:maxLines="1"
                     android:maxLength="20"
-                    android:singleLine="true"
-                    />
+                    android:maxLines="1"
+                    android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -54,13 +56,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/login_user_name_password"
-                    android:imeActionId="@+id/login"
                     android:imeActionLabel="@string/action_sign_in"
                     android:imeOptions="actionDone"
                     android:inputType="textPassword"
                     android:maxLength="20"
                     android:maxLines="1"
-                    android:singleLine="true"/>
+                    android:singleLine="true" />
             </android.support.design.widget.TextInputLayout>
 
             <Button
@@ -73,8 +74,8 @@
                 android:padding="16dp"
                 android:text="@string/action_sign_in"
                 android:textColor="@color/white"
-                android:textStyle="bold"
-                />
+                android:textStyle="bold" />
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -95,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:text="@string/register"
-                    android:textColor="@color/colorAccent"/>
+                    android:textColor="@color/colorAccent" />
             </RelativeLayout>
 
         </LinearLayout>
