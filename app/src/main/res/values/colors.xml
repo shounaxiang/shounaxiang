@@ -16,12 +16,21 @@
     <color name="app_yellow_dark">#F09300</color>
     <color name="app_red">#DB4437</color>
 
-    <color name="lightgreen">#8bfc8f</color>
+    <color name="light_green">#8bfc8f</color>
     <color name="right_menu_bg">#ede2e4</color>
     <color name="my_page_background">#fff6f6</color>
 
     <color name="background_gray">#F6F7F9</color>
-    <color name="background_color">#F5F6F8</color>
+    <color name="background_color">#EBEBEB</color>
     <color name="font_gray">#7B7B7B</color>
     <color name="font_black">#000000</color>
+
+    <color name="pressed">#d9d9d9</color>
+    <color name="text_green">#2DB35C</color>
+    <!-- 按钮颜色 -->
+    <color name="button_color_gray_green">#A2E08D</color>
+    <color name="button_color_green">#1AAD19</color>
+    <!-- 字体颜色 -->
+    <color name="orange">#FF911D</color>
+    <color name="background_orange">#FFEFD7</color>
 </resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_width="160dp"
+    android:layout_height="200dp">
+    <ImageView
+        android:id="@+id/iv_query_goods"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/python"/>
+    <TextView
+        android:id="@+id/tv_query_goods_name"
+        android:textColor="@color/black"
+        android:textSize="12sp"
+        android:paddingLeft="10dp"
+        android:layout_gravity="left"
+        android:paddingTop="5dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="python学习书籍"/>
+    <TextView
+        android:id="@+id/tv_query_goods_address"
+        android:background="@color/background_orange"
+        android:textColor="@color/orange"
+        android:textSize="12sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="12dp"
+        android:layout_gravity="left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="书房书架二层"/>
+
+</LinearLayout>

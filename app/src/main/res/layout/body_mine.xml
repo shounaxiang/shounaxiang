@@ -4,17 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/right_menu_bg"
+    android:background="@color/background_color"
     android:orientation="vertical"
     tools:context=".activity.MainActivity">
-    <TextView
+    <LinearLayout
+        style="@style/TitleNavigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/title_mine"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:padding="10dp"
-        android:background="@color/my_page_background"/>
+        android:layout_height="@dimen/title_height">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/title_mine"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@color/white"/>
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/my_portrait"
         android:layout_width="match_parent"
@@ -23,13 +29,13 @@
         android:orientation="horizontal"
         android:padding="10dp"
         android:clickable="true"
-        android:background="@color/my_page_background">
+        android:background="@drawable/pressed_style">
         <ImageView
             android:id="@+id/img_portrait"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/mine_img_width"
+            android:layout_height="@dimen/mine_img_width"
             android:layout_gravity="center_vertical"
-            android:src="@mipmap/my_portrait" />
+            android:src="@drawable/avatar" />
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -44,10 +50,11 @@
                 android:text="@string/portrait"
                 android:textSize="16sp"
                 android:textColor="@color/black"/>
+            <!-- 头像 -->
             <ImageView
-                android:id="@+id/img_my_portrait"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/iv_avatar"
+                android:layout_width="@dimen/avatar_length"
+                android:layout_height="@dimen/avatar_length"
                 android:layout_gravity="center_vertical"
                 android:src="@drawable/my_portrait"
                 android:layout_alignParentRight="true"
@@ -63,13 +70,13 @@
         android:layout_marginTop="3dp"
         android:padding="10dp"
         android:clickable="true"
-        android:background="@color/my_page_background">
+        android:background="@drawable/pressed_style">
         <ImageView
             android:id="@+id/img_nickname"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/mine_img_width"
+            android:layout_height="@dimen/mine_img_width"
             android:layout_gravity="center_vertical"
-            android:src="@mipmap/my_portrait" />
+            android:src="@drawable/nickname" />
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -100,6 +107,7 @@
 
     </LinearLayout>
     <LinearLayout
+        android:background="@drawable/pressed_style"
         android:id="@+id/my_sex"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -108,14 +116,13 @@
         android:padding="10dp"
         android:clickable="true"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:background="@color/my_page_background">
+        android:focusableInTouchMode="true">
         <ImageView
             android:id="@+id/img_sex"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/mine_img_width"
+            android:layout_height="@dimen/mine_img_width"
             android:layout_gravity="center_vertical"
-            android:src="@mipmap/my_portrait" />
+            android:src="@drawable/gender" />
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -150,13 +157,13 @@
         android:padding="10dp"
         android:layout_marginTop="3dp"
         android:clickable="true"
-        android:background="@color/my_page_background">
+        android:background="@drawable/pressed_style">
         <ImageView
             android:id="@+id/img_birth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/mine_img_width"
+            android:layout_height="@dimen/mine_img_width"
             android:layout_gravity="center_vertical"
-            android:src="@mipmap/my_portrait" />
+            android:src="@drawable/birthday" />
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
@@ -182,14 +189,13 @@
                 android:text="@string/my_birth" />
         </RelativeLayout>
     </LinearLayout>
-
     <TextView
         android:id="@+id/room_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginTop="6dp"
-        android:background="@color/my_page_background"
+        android:background="@drawable/pressed_style"
         android:clickable="true"
         android:drawableRight="@mipmap/setting_arrow"
         android:gravity="center_vertical"
@@ -204,7 +210,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginTop="6dp"
-        android:background="@color/my_page_background"
+        android:background="@drawable/pressed_style"
         android:clickable="true"
         android:drawableRight="@mipmap/setting_arrow"
         android:gravity="center_vertical"
@@ -218,7 +224,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginTop="10dp"
-        android:background="@color/my_page_background"
+        android:background="@drawable/pressed_style"
         android:clickable="true"
         android:gravity="center"
         android:padding="11dp"

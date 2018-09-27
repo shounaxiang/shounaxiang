@@ -9,6 +9,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.xhzh.shounaxiang.activity.MainActivity;
 
 public class AppUtils {
 
@@ -18,5 +21,7 @@ public class AppUtils {
         editText.requestFocus();
         activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
-
+    public static void showShortToast(String msg, Context context) {
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    }
 }

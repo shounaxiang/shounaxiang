@@ -2,9 +2,8 @@ package com.xhzh.shounaxiang.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.util.Log;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
@@ -13,7 +12,9 @@ import com.xhzh.shounaxiang.R;
 
 public class SplashActivity extends Activity {
     private ImageView iv_spalsh;
-    private static final int DELAY_TIME = 2000;
+    //延迟时间
+    private static final int DELAY_TIME = 1000;
+    Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +32,15 @@ public class SplashActivity extends Activity {
                 } catch (Exception e){
                     e.printStackTrace();
                 }
-                Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-                if(!isFinishing()) startActivity(intent);
+                SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
+                boolean login_state = pref.getBoolean("LOGIN_STATE", false);
+                if (login_state) {
+                    intent = new Intent(SplashActivity.this, MainActivity.class);
+                }
+                else {
+                    intent = new Intent(SplashActivity.this, LoginActivity.class);
+                }
+                if (!isFinishing()) startActivity(intent);
                 finish();
             }
         }).start();

@@ -2,10 +2,83 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/green">
-    <TextView
+    android:orientation="vertical"
+    android:background="@color/white">
+    <LinearLayout
+        style="@style/TitleNavigation"
+        android:background="@color/white"
+        android:paddingHorizontal="10dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="0"/>
+        android:layout_height="@dimen/title_height">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ImageView
+                android:layout_centerVertical="true"
+                android:paddingVertical="10dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/query"
+                android:layout_alignParentLeft="true"/>
+            <RelativeLayout
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_width="80dp"
+                android:layout_height="match_parent">
+                <RelativeLayout
+                    android:id="@+id/selected_goods"
+                    android:layout_alignParentLeft="true"
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="物品"/>
+                    <View
+                        android:id="@+id/view1"
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:background="@color/green"
+                        android:layout_alignParentBottom="true"/>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/selected_address"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="位置"/>
+                    <View
+                        android:id="@+id/view2"
+                        android:visibility="invisible"
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:background="@color/green"
+                        android:layout_alignParentBottom="true"/>
+                </RelativeLayout>
+            </RelativeLayout>
+            <Button
+                android:visibility="invisible"
+                android:id="@+id/btn_modify_address"
+                android:background="@null"
+                android:layout_alignParentRight="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="编辑"/>
+        </RelativeLayout>
+    </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <include layout="@layout/body_query_goods"
+            android:id="@+id/ll_query_item_goods"/>
+        <include layout="@layout/body_query_addr"
+            android:id="@+id/ll_query_item_addr"
+            android:visibility="invisible"/>
+    </FrameLayout>
 
 </LinearLayout>
