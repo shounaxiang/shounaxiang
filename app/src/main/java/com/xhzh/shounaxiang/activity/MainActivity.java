@@ -75,8 +75,11 @@ public class MainActivity extends AppCompatActivity {
     Button btn_modify_address;
     SharedPreferences pref;
     GridView gv_query_goods;
+    GridView gv_query_positions;
     private List<Map<String, Object>> goods_list;
+    private List<Map<String, Object>> positions_list;
     private SimpleAdapter goods_adapter;
+    private SimpleAdapter positions_adapter;
     private static final String TAG = "MainActivity";
     private static boolean firstClickBack = false;
     private static final int EXIT = 0;
@@ -160,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
         goods_list = new ArrayList<Map<String, Object>>();
         initData();
         ll_query_item_addr = body_query.findViewById(R.id.ll_query_item_addr);
+        gv_query_positions = ll_query_item_addr.findViewById(R.id.gv_query_positions);
+        positions_list = new ArrayList<Map<String, Object>>();
+        initPositionData();
         btn_modify_address = body_query.findViewById(R.id.btn_modify_address);
         tv_nickname = body_mine.findViewById(R.id.tv_nickname);
         tv_nickname.setText(pref.getString("User_name", "佚名"));
@@ -432,6 +438,25 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
+    private void initPositionData() {
+        int[] positions = {R.drawable.bookcase, R.drawable.bedstand};
+        String[] pos_names = {"书柜", "床头柜"};
+        String[] pos_from = {"iv_query_positions", "tv_query_positions_name"};
+        for (int i = 0; i < positions.length; ++i) {
+            Map<String, Object> map=new HashMap<String, Object>();
+            map.put(pos_from[0], positions[i]);
+            map.put(pos_from[1], pos_names[i]);
+            positions_list.add(map);
+        }
+
+        int[] to = {R.id.iv_query_positions, R.id.tv_query_positions_name};
+        positions_adapter = new SimpleAdapter(this, positions_list,
+                R.layout.body_query_positions_item, pos_from, to);
+        gv_query_positions.setAdapter(positions_adapter);
+
+    }
+
+
     private void initData() {
         int[] fruits = {R.drawable.fruit1, R.drawable.fruit2, R.drawable.fruit3, R.drawable.fruit4};
         String[] names = {"荔枝", "柿子", "桃子", "草莓"};
