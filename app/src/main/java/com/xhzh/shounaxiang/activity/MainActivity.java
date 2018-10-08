@@ -44,6 +44,7 @@ import android.widget.Toast;
 
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.User;
+import com.xhzh.shounaxiang.listener.BottomMenuOnClinkListener;
 import com.xhzh.shounaxiang.util.AppUtils;
 import com.xhzh.shounaxiang.util.DownloadImage;
 import com.xhzh.shounaxiang.util.PermUtil;
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     Button btn_modify_address;
     SharedPreferences pref;
     GridView gv_query_goods;
+    ImageView iv_add_goods;
     private List<Map<String, Object>> goods_list;
     private SimpleAdapter goods_adapter;
     private static final String TAG = "MainActivity";
@@ -150,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
         new DownloadImage(pref.getString("User_phone", "default")).execute();
         View body_query = getLayoutInflater().inflate(R.layout.body_query, null);
         View body_add = getLayoutInflater().inflate(R.layout.body_add, null);
+        iv_add_goods = body_add.findViewById(R.id.iv_add_goods);
+        iv_add_goods.setOnClickListener(new BottomMenuOnClinkListener(this));
         View body_mine = getLayoutInflater().inflate(R.layout.body_mine, null);
         selected_goods = body_query.findViewById(R.id.selected_goods);
         selected_address = body_query.findViewById(R.id.selected_address);

@@ -31,6 +31,7 @@
             android:textAlignment="center"
             android:hint="物品名称"/>
         <ImageView
+            android:id="@+id/iv_add_goods"
             android:layout_centerHorizontal="true"
             android:layout_below="@id/et_goods_name"
             android:layout_width="45dp"
@@ -47,6 +48,7 @@
             android:layout_height="100dp"
             android:src="@drawable/peach"/>
         <Button
+            android:id="@+id/btn_add_goods"
             android:layout_marginTop="50dp"
             android:layout_below="@id/iv_new_goods"
             android:text="添加"

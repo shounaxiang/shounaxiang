@@ -33,4 +33,6 @@
     <!-- 字体颜色 -->
     <color name="orange">#FF911D</color>
     <color name="background_orange">#FFEFD7</color>
+    <!-- 底部菜单间隔的灰色 -->
+    <color name="interval_gray">#E5E3E4</color>
 </resources>

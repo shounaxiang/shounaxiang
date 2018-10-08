@@ -3,17 +3,18 @@
 
     <item
         android:id="@+id/navigation_query"
-        android:icon="@drawable/tab_query"
+        android:icon="@drawable/main_query"
         android:title="@string/title_query" />
 
     <item
+
         android:id="@+id/navigation_add"
-        android:icon="@drawable/tab_add"
+        android:icon="@drawable/main_add"
         android:title="@string/title_add" />
 
     <item
         android:id="@+id/navigation_mine"
-        android:icon="@drawable/tab_mine"
+        android:icon="@drawable/main_mine"
         android:title="@string/title_mine" />
 
 
