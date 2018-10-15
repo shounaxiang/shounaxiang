@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -34,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -44,10 +46,15 @@ import android.widget.Toast;
 
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.User;
+import com.xhzh.shounaxiang.listener.AddGoods_OnClickListener;
+import com.xhzh.shounaxiang.listener.EditText_TextWatcher;
 import com.xhzh.shounaxiang.listener.BottomMenuOnClinkListener;
+import com.xhzh.shounaxiang.listener.ModifyAddress_OnClickListener;
 import com.xhzh.shounaxiang.util.AppUtils;
+import com.xhzh.shounaxiang.util.Constant;
 import com.xhzh.shounaxiang.util.DownloadImage;
 import com.xhzh.shounaxiang.util.PermUtil;
+import com.xhzh.shounaxiang.util.SaveGoodsImage;
 import com.xhzh.shounaxiang.util.UploadImage;
 
 import java.io.File;
@@ -76,7 +83,9 @@ public class MainActivity extends AppCompatActivity {
     Button btn_modify_address;
     SharedPreferences pref;
     GridView gv_query_goods;
-    ImageView iv_add_goods;
+    ImageView iv_add_goods, iv_new_goods;
+    EditText et_goods_name;
+    Button btn_add_goods;
     private List<Map<String, Object>> goods_list;
     private SimpleAdapter goods_adapter;
     private static final String TAG = "MainActivity";
@@ -111,13 +120,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ActivityCompat.requestPermissions(this, new String[]{
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
         }, 1);
         if(!PermUtil.checkPerm(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             //ToastUtils.showShortToast("对不起，没有该权限，软件无法正常运行");
             Toast.makeText(MainActivity.this, "对不起，没有该权限，软件无法正常运行",
                     Toast.LENGTH_SHORT).show();
             //ActivityCollector.finishAll();
+        }
+        if (!PermUtil.checkPerm(this, Manifest.permission.CAMERA)) {
+            Toast.makeText(MainActivity.this, "对不起，没有拍照权限，软件无法正常运行",
+                    Toast.LENGTH_SHORT).show();
         }
         initView();
     }
@@ -133,17 +147,42 @@ public class MainActivity extends AppCompatActivity {
             case CHOOSE_PHOTO:
                 if (resultCode == RESULT_OK) {
                     // 判断手机系统版本号
+                    String image_path;
                     if (Build.VERSION.SDK_INT >= 19) {
                         // a4.4及以上系统使用这个方法处理图片
-                        handleImageOnKitKat(data);
+                        image_path = handleImageOnKitKat(data);
                     } else {
                         // a4.4以下系统使用这个方法处理图片
-                        handleImageBeforeKitKat(data);
+                        image_path = handleImageBeforeKitKat(data);
                     }
+                    displayImage(image_path);
+                }
+                break;
+            case Constant.ADD_GOODS:
+                try {
+                    Bundle extras = data.getExtras();
+                    bitmap = (Bitmap) extras.get("data");
+                    iv_new_goods.setImageBitmap(bitmap);
+                    new SaveGoodsImage(bitmap, "test").save();
+                }catch (Exception e) {
+
+                }
+                break;
+            case Constant.CHOOSE_GOODS:
+                if (resultCode == RESULT_OK) {
+                    // 判断手机系统版本号
+                    String image_path;
+                    if (Build.VERSION.SDK_INT >= 19) {
+                        // a4.4及以上系统使用这个方法处理图片
+                        image_path = handleImageOnKitKat(data);
+                    } else {
+                        // a4.4以下系统使用这个方法处理图片
+                        image_path = handleImageBeforeKitKat(data);
+                    }
+                    setNewGoodsImage(image_path);
                 }
                 break;
         }
-
     }
 
     private void initView() {
@@ -155,6 +194,13 @@ public class MainActivity extends AppCompatActivity {
         iv_add_goods = body_add.findViewById(R.id.iv_add_goods);
         iv_add_goods.setOnClickListener(new BottomMenuOnClinkListener(this));
         View body_mine = getLayoutInflater().inflate(R.layout.body_mine, null);
+        iv_new_goods = body_add.findViewById(R.id.iv_new_goods);
+        et_goods_name = body_add.findViewById(R.id.et_goods_name);
+        btn_add_goods = body_add.findViewById(R.id.btn_add_goods);
+        bitmap = ((BitmapDrawable)iv_add_goods.getDrawable()).getBitmap();
+        btn_add_goods.setOnClickListener(new AddGoods_OnClickListener(
+                this, et_goods_name, System.currentTimeMillis() + "", bitmap, "未知"));
+        et_goods_name.addTextChangedListener(new EditText_TextWatcher(this, btn_add_goods, et_goods_name));
         selected_goods = body_query.findViewById(R.id.selected_goods);
         selected_address = body_query.findViewById(R.id.selected_address);
         views[0] = body_query.findViewById(R.id.view1);
@@ -165,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
         initData();
         ll_query_item_addr = body_query.findViewById(R.id.ll_query_item_addr);
         btn_modify_address = body_query.findViewById(R.id.btn_modify_address);
+        btn_modify_address.setOnClickListener(new ModifyAddress_OnClickListener(this));
         tv_nickname = body_mine.findViewById(R.id.tv_nickname);
         tv_nickname.setText(pref.getString("User_name", "佚名"));
         my_sex = body_mine.findViewById(R.id.my_sex);
@@ -371,13 +418,14 @@ public class MainActivity extends AppCompatActivity {
         intent.setType("image/*");
         startActivityForResult(intent, CHOOSE_PHOTO); // 打开相册
     }
-    private void handleImageBeforeKitKat(Intent data) {
+    private String handleImageBeforeKitKat(Intent data) {
         Uri uri = data.getData();
         String imagePath = getImagePath(uri, null);
-        displayImage(imagePath);
+        // displayImage(imagePath);
+        return imagePath;
     }
     @TargetApi(19)
-    private void handleImageOnKitKat(Intent data) {
+    private String handleImageOnKitKat(Intent data) {
         String imagePath = null;
         Uri uri = data.getData();
         Log.d("TAG", "handleImageOnKitKat: uri is " + uri);
@@ -399,7 +447,8 @@ public class MainActivity extends AppCompatActivity {
             // 如果是file类型的Uri，直接获取图片路径即可
             imagePath = uri.getPath();
         }
-        displayImage(imagePath); // 根据图片路径显示图片
+        //displayImage(imagePath); // 根据图片路径显示图片
+        return imagePath;
     }
     private String getImagePath(Uri uri, String selection) {
         String path = null;
@@ -422,6 +471,14 @@ public class MainActivity extends AppCompatActivity {
             iv_avatar.setImageBitmap(bitmap);
         } else {
             Toast.makeText(this, "failed to get image", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void setNewGoodsImage(String imagePath) {
+        if (imagePath != null) {
+            bitmap = BitmapFactory.decodeFile(imagePath);
+            iv_new_goods.setImageBitmap(bitmap);
+        } else {
+            Toast.makeText(this, "failed to set image", Toast.LENGTH_SHORT).show();
         }
     }
     @Override
