@@ -7,12 +7,12 @@
     android:background="@color/white"
     >
     <GridView
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="3dp"
         android:stretchMode="spacingWidthUniform"
-        android:id="@+id/gv_query_positions"
+        android:id="@+id/gv_query_addr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:numColumns="2"
-        android:columnWidth="160dp" />
+        android:numColumns="3"
+        android:columnWidth="100dp" />
 
 </LinearLayout>

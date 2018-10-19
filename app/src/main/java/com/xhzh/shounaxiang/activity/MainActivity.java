@@ -2,6 +2,7 @@ package com.xhzh.shounaxiang.activity;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.ContentUris;
@@ -50,6 +51,7 @@ import com.xhzh.shounaxiang.listener.AddGoods_OnClickListener;
 import com.xhzh.shounaxiang.listener.EditText_TextWatcher;
 import com.xhzh.shounaxiang.listener.BottomMenuOnClinkListener;
 import com.xhzh.shounaxiang.listener.ModifyAddress_OnClickListener;
+import com.xhzh.shounaxiang.listener.Query_OnClickListener;
 import com.xhzh.shounaxiang.util.AppUtils;
 import com.xhzh.shounaxiang.util.Constant;
 import com.xhzh.shounaxiang.util.DownloadImage;
@@ -68,6 +70,7 @@ import java.util.Map;
 import cn.qqtheme.framework.picker.OptionPicker;
 
 public class MainActivity extends AppCompatActivity {
+    private static Activity MAINACTIVITY;
     LinearLayout my_birth;
     LinearLayout my_sex;
     LinearLayout ll_nickname;
@@ -82,19 +85,19 @@ public class MainActivity extends AppCompatActivity {
     View[] views = new View[2];
     Button btn_modify_address;
     SharedPreferences pref;
-    GridView gv_query_goods;
+    GridView gv_query_goods, gv_query_addr;
     ImageView iv_add_goods, iv_new_goods;
     EditText et_goods_name;
     Button btn_add_goods;
-    private List<Map<String, Object>> goods_list;
-    private SimpleAdapter goods_adapter;
+    ImageView iv_query;
+    private List<Map<String, Object>> goods_list, addr_list;
+    private SimpleAdapter goods_adapter, addr_adapter;
     private static final String TAG = "MainActivity";
     private static boolean firstClickBack = false;
     private static final int EXIT = 0;
     public static final int MODIFY_NAME = 1;
     public static final int CHOOSE_PHOTO = 2;
     public static final String NICKNAME = "avatar";
-    public static  Context main_context;
     private ViewPager.OnPageChangeListener pageChangeListener;
     private static Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -186,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        main_context = this;
+        MainActivity.MAINACTIVITY = this;
         pref = getSharedPreferences("user", MODE_PRIVATE);
         new DownloadImage(pref.getString("User_phone", "default")).execute();
         View body_query = getLayoutInflater().inflate(R.layout.body_query, null);
@@ -203,13 +206,17 @@ public class MainActivity extends AppCompatActivity {
         et_goods_name.addTextChangedListener(new EditText_TextWatcher(this, btn_add_goods, et_goods_name));
         selected_goods = body_query.findViewById(R.id.selected_goods);
         selected_address = body_query.findViewById(R.id.selected_address);
+        iv_query = body_query.findViewById(R.id.iv_query);
+        iv_query.setOnClickListener(new Query_OnClickListener(this));
         views[0] = body_query.findViewById(R.id.view1);
         views[1] = body_query.findViewById(R.id.view2);
         ll_query_item_goods = body_query.findViewById(R.id.ll_query_item_goods);
-        gv_query_goods = ll_query_item_goods.findViewById(R.id.gv_query_goods);
-        goods_list = new ArrayList<Map<String, Object>>();
-        initData();
         ll_query_item_addr = body_query.findViewById(R.id.ll_query_item_addr);
+        gv_query_goods = ll_query_item_goods.findViewById(R.id.gv_query_goods);
+        gv_query_addr = ll_query_item_addr.findViewById(R.id.gv_query_addr);
+        goods_list = new ArrayList<Map<String, Object>>();
+        addr_list = new ArrayList<Map<String, Object>>();
+        initData(); initDataAddress();
         btn_modify_address = body_query.findViewById(R.id.btn_modify_address);
         btn_modify_address.setOnClickListener(new ModifyAddress_OnClickListener(this));
         tv_nickname = body_mine.findViewById(R.id.tv_nickname);
@@ -512,5 +519,21 @@ public class MainActivity extends AppCompatActivity {
         gv_query_goods.setAdapter(goods_adapter);
 
     }
+    private void initDataAddress() {
+        String[] from = {"tv_address_name"};
+        int[] to = {R.id.tv_address_name};
+        String[] address_name = {"客厅", "卧室", "厨房"};
+        for (String name: address_name) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put(from[0], name);
+            addr_list.add(map);
+        }
+        addr_adapter = new SimpleAdapter(this, addr_list,
+                R.layout.body_query_addr_item, from, to);
+        gv_query_addr.setAdapter(addr_adapter);
+    }
 
+    public static Activity getActivity() {
+        return MAINACTIVITY;
+    }
 }

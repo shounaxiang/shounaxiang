@@ -41,7 +41,8 @@
             android:label="@string/title_activity_login" />
         <activity android:name=".activity.ModifyNickname" />
         <activity android:name=".activity.RegisterActivity" />
-        <activity android:name=".activity.ModifyAddressActivity"></activity>
+        <activity android:name=".activity.ModifyAddressActivity" />
+        <activity android:name=".activity.QueryGoodsActivity"></activity>
     </application>
 
 </manifest>
