@@ -5,6 +5,61 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/white"
     tools:context=".activity.QueryGoodsActivity">
+    <RelativeLayout
+        style="@style/TitleNavigation">
+        <ImageView
+            android:visibility="visible"
+            android:id="@+id/iv_back"
+            android:layout_width="@dimen/top_navigation_back_width_mid"
+            android:layout_height="match_parent"
+            android:src="@drawable/icon_back"/>
+        <TextView
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="物品搜索"/>
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_marginTop="10dp"
+        android:layout_marginHorizontal="10dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <EditText
+            android:id="@+id/et_query_goods"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:hint="待查询的物品名"
+            android:singleLine="true" />
+        <ImageView
+            android:layout_marginHorizontal="5dp"
+            android:layout_weight="1"
+            android:layout_alignParentRight="true"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/query"/>
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_marginTop="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <include
+                layout="@layout/body_query_goods_item"
+                android:id="@+id/ll_query_goods_item"
+                />
+        </LinearLayout>
+
+    </RelativeLayout>
+
 
 </LinearLayout>
