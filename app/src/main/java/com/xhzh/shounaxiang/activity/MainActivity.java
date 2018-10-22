@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         MainActivity.MAINACTIVITY = this;
         pref = getSharedPreferences("user", MODE_PRIVATE);
-        new DownloadImage(pref.getString("User_phone", "default")).execute();
+        //new DownloadImage(pref.getString("User_phone", "default")).execute();
         View body_query = getLayoutInflater().inflate(R.layout.body_query, null);
         View body_add = getLayoutInflater().inflate(R.layout.body_add, null);
         iv_add_goods = body_add.findViewById(R.id.iv_add_goods);

@@ -1,14 +1,12 @@
 package com.xhzh.shounaxiang.activity;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.media.Image;
-import android.provider.ContactsContract;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -88,11 +86,11 @@ public class ModifyAddressActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         //按下确定键后的事件
                         String new_address = et.getText().toString().trim();
-                        work(new_address);
+                        addAddress(new_address);
                     }
                 }).setNegativeButton("取消",null).show();
     }
-    void work(String address) {  // 添加位置的回调方法
+    void addAddress(String address) {  // 添加位置的回调方法
         if (address == null || address.equals("")) {
             AppUtils.showShortToast("名字不能为空", this);
         }
@@ -104,8 +102,8 @@ public class ModifyAddressActivity extends AppCompatActivity {
             SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
             params.put("User_id", pref.getString("User_id", null));
             params.put("new_address", new_address);
-            String url = null;
-            client.post("", params, new AsyncHttpResponseHandler() {
+            String url = "http://112.74.109.111:8080/XHZH/space/add";
+            client.post(url, params, new AsyncHttpResponseHandler() {
                 @Override
                 public void onSuccess(int i, Header[] headers, byte[] bytes) {
                     try {
@@ -117,6 +115,9 @@ public class ModifyAddressActivity extends AppCompatActivity {
                             addr_list.add(0, map);
                             addr_adapter.notifyDataSetChanged();  // 数据变化时，哈哈
                             Toast.makeText(MainActivity.getActivity(), "添加成功", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(MainActivity.getActivity(), "{'flag': 'false'}", Toast.LENGTH_SHORT).show();
                         }
                     } catch (Exception e) {
                         Toast.makeText(MainActivity.getActivity(), "添加失败", Toast.LENGTH_SHORT).show();
@@ -140,7 +141,7 @@ public class ModifyAddressActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position,
+        public void onItemClick(AdapterView<?> parent, View view, final int position,
                                 long id) {
             final ImageView iv_del = view.findViewById(R.id.iv_delete_address);
             final TextView tv_address = view.findViewById(R.id.tv_address_name);
@@ -154,7 +155,9 @@ public class ModifyAddressActivity extends AppCompatActivity {
                     dialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-
+                            // AppUtils.showShortToast("" + position, MainActivity.getActivity());
+                            addr_list.remove(position);
+                            addr_adapter.notifyDataSetChanged();
                         }
                     });
                     dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
