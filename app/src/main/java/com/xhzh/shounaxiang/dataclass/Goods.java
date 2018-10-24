@@ -14,12 +14,21 @@ public class Goods {
             Goods_img,
             Goods_path,
             Space_id,
+            Space_name,
             Goods_price,
             Goods_stars,
             Goods_num,
             Goods_color,
             Goods_assort,
             Goods_season;
+
+    public String getSpace_name() {
+        return Space_name;
+    }
+
+    public void setSpace_name(String space_name) {
+        Space_name = space_name;
+    }
 
     public String getUser_id() {
         return User_id;

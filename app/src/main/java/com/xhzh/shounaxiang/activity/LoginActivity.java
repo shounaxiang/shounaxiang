@@ -1,21 +1,19 @@
 package com.xhzh.shounaxiang.activity;
 
-import android.Manifest;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Space;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -25,18 +23,23 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.Goods;
+import com.xhzh.shounaxiang.dataclass.Spaces;
 import com.xhzh.shounaxiang.dataclass.User;
 import com.xhzh.shounaxiang.util.AppUtils;
 import com.xhzh.shounaxiang.util.DownloadImage;
-import com.xhzh.shounaxiang.util.PermUtil;
+import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 
 import org.apache.http.Header;
 import org.json.JSONObject;
+
+import java.util.List;
 
 public class LoginActivity extends Activity {
     private static ProgressDialog progressDialog_login;
     AutoCompleteTextView tv_user_name;
     EditText et_password;
+    private static Activity activity;
+    MyDatabaseHelper dbHelper;
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
@@ -45,6 +48,7 @@ public class LoginActivity extends Activity {
                 case 0:
                     SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
                     AsyncHttpClient client = new AsyncHttpClient();
+                    client.setTimeout(3000);
                     String url = "http://112.74.109.111:8080/XHZH/Goods/queryGoodsByUseId";
                     RequestParams params = new RequestParams();
                     params.put("User_id", pref.getString("User_id", "3"));
@@ -53,17 +57,28 @@ public class LoginActivity extends Activity {
                         public void onSuccess(int i, Header[] headers, byte[] bytes) {
                             try {
                                 JSONObject json = new JSONObject(new String(bytes, "utf-8"));
-                                Goods[] goods_list = new Gson().fromJson(json.getString("Goods"),
-                                        new TypeToken<Goods>(){}.getType());
-                                Log.e("LoginActivity", "onSuccess: " +goods_list.toString());
+                                List<Goods> goods_list = new Gson().fromJson(json.getString("Goods"),
+                                        new TypeToken<List<Goods>>(){}.getType());
+                                //Log.e("LoginActivity", "onSuccess: " +goods_list.toString());
+                                SQLiteDatabase db = dbHelper.getReadableDatabase();
+                                for (Goods goods : goods_list) {
+                                    try {
+                                        db.execSQL("insert into Goods (Space_id, Space_name, User_id, Goods_id, Goods_img, " +
+                                                        "Goods_path, Goods_name) values(?, ?, ?, ?, ?, ?, ?)",
+                                                new String[]{goods.getSpace_id(), goods.getSpace_name(), goods.getUser_id(), goods.getGoods_id()
+                                                    , goods.getGoods_img(), goods.getGoods_path(), goods.getGoods_name()});
+                                        new DownloadImage(goods.getGoods_img()).execute();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                 startActivity(intent);
+                                if (progressDialog_login != null) progressDialog_login.cancel();
                                 finish();
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                startActivity(intent);
-                                finish();
+                                Toast.makeText(activity, "写入数据失败", Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -72,6 +87,42 @@ public class LoginActivity extends Activity {
 
                         }
                     });
+                    String url_space = "http://112.74.109.111:8080/XHZH/space/querySpacesByUserId";
+                    AsyncHttpClient client_space = new AsyncHttpClient();
+                    client_space.setTimeout(3000);
+                    client_space.post(url_space, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                            try {
+                                JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+                                List<Spaces> space_list = new Gson().fromJson(json.getString("Spaces"),
+                                        new TypeToken<List<Spaces>>() {
+                                        }.getType());
+                                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                                for (Spaces space : space_list) {
+                                    try {
+                                        db.execSQL("insert into Space (Space_id, Space_name, Space_img," +
+                                                " Space_belong, Space_level, User_id) values(?, ?, ?, ?, ?, ?)",
+                                                new String[]{space.getSpace_id(), space.getSpace_name(), space.getSpace_img(),
+                                                        space.getSpace_belong(), space.getSpace_level(), space.getUser_id()});
+                                    }
+                                    catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                        }
+                    });
+                    break;
+                case 1:
                     break;
 
             }
@@ -82,6 +133,8 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        activity = this;
+        dbHelper = new MyDatabaseHelper(this, "xhzh.db", null, 3);
         Button ben_login = findViewById(R.id.ben_login);
         Button btn_forgot_register = findViewById(R.id.btn_forgot_register);
         tv_user_name = findViewById(R.id.tv_user_name);
@@ -137,19 +190,19 @@ public class LoginActivity extends Activity {
                                 handler.sendMessage(msg);
                             }
                             else {
-                                progressDialog_login.cancel();
+                                if (progressDialog_login !=null) progressDialog_login.cancel();
                                 AppUtils.showShortToast("账户或密码错误", LoginActivity.this);
                             }
                         }
                         catch (Exception e) {
-                            progressDialog_login.cancel();
+                            if (progressDialog_login !=null) progressDialog_login.cancel();
                             AppUtils.showShortToast("异常", LoginActivity.this);
                             e.printStackTrace();
                         }
                     }
                     @Override
                     public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
-                        progressDialog_login.cancel();
+                        if (progressDialog_login !=null) progressDialog_login.cancel();
                         AppUtils.showShortToast("网络访问失败", LoginActivity.this);
                     }
                 });
