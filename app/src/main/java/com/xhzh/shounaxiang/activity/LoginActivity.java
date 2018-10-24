@@ -40,6 +40,7 @@ public class LoginActivity extends Activity {
     EditText et_password;
     private static Activity activity;
     MyDatabaseHelper dbHelper;
+    private
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
@@ -67,7 +68,7 @@ public class LoginActivity extends Activity {
                                                         "Goods_path, Goods_name) values(?, ?, ?, ?, ?, ?, ?)",
                                                 new String[]{goods.getSpace_id(), goods.getSpace_name(), goods.getUser_id(), goods.getGoods_id()
                                                     , goods.getGoods_img(), goods.getGoods_path(), goods.getGoods_name()});
-                                        new DownloadImage(goods.getGoods_img()).execute();
+                                        //new DownloadImage(goods.getGoods_img()).execute();
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -122,7 +123,8 @@ public class LoginActivity extends Activity {
                         }
                     });
                     break;
-                case 1:
+                case 100:
+
                     break;
 
             }
@@ -171,7 +173,7 @@ public class LoginActivity extends Activity {
                                 User user = new Gson().fromJson(json.getString("User"),
                                         new TypeToken<User>(){}.getType());
                                 final String user_id = user.getUser_id();
-                                new DownloadImage(user.getUser_phone()).execute();
+                                //new DownloadImage(user.getUser_phone()).execute();
                                 //AppUtils.showShortToast(user.getUser_id(), LoginActivity.this);
                                 SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                                 // "User":{"User_id":111,"User_password":"111","User_img":"http://112.74.109.111:8080/images/none_head_img.png",

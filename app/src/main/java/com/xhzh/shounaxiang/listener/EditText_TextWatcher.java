@@ -17,11 +17,11 @@ public class EditText_TextWatcher implements TextWatcher {
     private Activity m_activity;
     private static Button button;
     private static EditText editText;
-    public EditText_TextWatcher(Activity activity, Button btn_add_goods, EditText et_goods_name) {
-        if (activity == null || button == null || et_goods_name == null) {
+    public EditText_TextWatcher(Activity activity, Button button, EditText editText) {
+        if (true) {
             m_activity = activity;
-            button = btn_add_goods;
-            editText = et_goods_name;
+            EditText_TextWatcher.button = button;
+            EditText_TextWatcher.editText = editText;
         }
     }
     @Override
@@ -31,12 +31,12 @@ public class EditText_TextWatcher implements TextWatcher {
 
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-        work();
+
     }
 
     @Override
     public void afterTextChanged(Editable editable) {
-
+        work();
     }
 
     private void work() {
@@ -46,7 +46,6 @@ public class EditText_TextWatcher implements TextWatcher {
                 button.setEnabled(false);
             }
             else {
-
                     button.setBackgroundColor(m_activity.getResources().getColor(R.color.button_color_green));
                     button.setEnabled(true);
             }

@@ -12,13 +12,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -31,9 +34,11 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -45,13 +50,16 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.xhzh.shounaxiang.R;
+import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
 import com.xhzh.shounaxiang.dataclass.User;
 import com.xhzh.shounaxiang.listener.AddGoods_OnClickListener;
 import com.xhzh.shounaxiang.listener.EditText_TextWatcher;
 import com.xhzh.shounaxiang.listener.BottomMenuOnClinkListener;
 import com.xhzh.shounaxiang.listener.ModifyAddress_OnClickListener;
 import com.xhzh.shounaxiang.listener.Query_OnClickListener;
+import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 import com.xhzh.shounaxiang.util.AppUtils;
 import com.xhzh.shounaxiang.util.Constant;
 import com.xhzh.shounaxiang.util.DownloadImage;
@@ -90,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
     EditText et_goods_name;
     Button btn_add_goods;
     ImageView iv_query;
+    private MyDatabaseHelper helper;
     private List<Map<String, Object>> goods_list, addr_list;
     private SimpleAdapter goods_adapter, addr_adapter;
     private static final String TAG = "MainActivity";
@@ -190,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         MainActivity.MAINACTIVITY = this;
+        helper = new MyDatabaseHelper(this, DatabaseConfigure.db_name, null, DatabaseConfigure.version);
         pref = getSharedPreferences("user", MODE_PRIVATE);
         //new DownloadImage(pref.getString("User_phone", "default")).execute();
         View body_query = getLayoutInflater().inflate(R.layout.body_query, null);
@@ -201,8 +211,7 @@ public class MainActivity extends AppCompatActivity {
         et_goods_name = body_add.findViewById(R.id.et_goods_name);
         btn_add_goods = body_add.findViewById(R.id.btn_add_goods);
         bitmap = ((BitmapDrawable)iv_add_goods.getDrawable()).getBitmap();
-        btn_add_goods.setOnClickListener(new AddGoods_OnClickListener(
-                this, et_goods_name, System.currentTimeMillis() + "", bitmap, "未知"));
+        btn_add_goods.setOnClickListener(new AddGoods_OnClickListener(this));
         et_goods_name.addTextChangedListener(new EditText_TextWatcher(this, btn_add_goods, et_goods_name));
         selected_goods = body_query.findViewById(R.id.selected_goods);
         selected_address = body_query.findViewById(R.id.selected_address);
@@ -216,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         gv_query_addr = ll_query_item_addr.findViewById(R.id.gv_query_addr);
         goods_list = new ArrayList<Map<String, Object>>();
         addr_list = new ArrayList<Map<String, Object>>();
-        initData(); initDataAddress();
+        //initData(); initDataAddress();
         btn_modify_address = body_query.findViewById(R.id.btn_modify_address);
         btn_modify_address.setOnClickListener(new ModifyAddress_OnClickListener(this));
         tv_nickname = body_mine.findViewById(R.id.tv_nickname);
@@ -232,6 +241,8 @@ public class MainActivity extends AppCompatActivity {
         iv_avatar = body_mine.findViewById(R.id.iv_avatar);
         File path = new File(User.LocalPritruesProfile, pref.getString("User_phone", "111") + ".JPG");
         iv_avatar.setImageURI(Uri.fromFile(path));
+        Glide.with(this).load("http://139.199.38.177/php/XHZH/PicturesProfile/"
+                + pref.getString("User_phone", "") + ".JPG").into(iv_avatar);
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.my_portrait);
         viewList = new ArrayList<>();
         viewList.add(body_query);
@@ -379,6 +390,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        initData(); initDataAddress();
     }
     private PagerAdapter pagerAdapter = new PagerAdapter() {
         @Override
@@ -501,22 +513,70 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void initData() {
-        int[] fruits = {R.drawable.fruit1, R.drawable.fruit2, R.drawable.fruit3, R.drawable.fruit4};
-        String[] names = {"荔枝", "柿子", "桃子", "草莓"};
-        String[] addrs = {"盘子", "桌子", "箱子", "篮子"};
-        String[] from = {"iv_query_goods", "tv_query_goods_name", "tv_query_goods_address"};
-        for (int i = 0; i < fruits.length; ++i) {
-            Map<String, Object> map=new HashMap<String, Object>();
-            map.put(from[0], fruits[i]);
-            map.put(from[1], names[i]);
-            map.put(from[2], addrs[i]);
-            goods_list.add(map);
+//        int[] fruits = {R.drawable.fruit1, R.drawable.fruit2, R.drawable.fruit3, R.drawable.fruit4};
+//        String[] names = {"荔枝", "柿子", "桃子", "草莓"};
+//        String[] addrs = {"盘子", "桌子", "箱子", "篮子"};
+        List<String> imgs = new ArrayList<String>();
+        List<String> names = new ArrayList<String>();
+        List<String> addrs = new ArrayList<String>();
+        List<String> goods_id = new ArrayList<String>();
+        try {
+            SQLiteDatabase db = helper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("select * from Goods where User_id = " + pref.getString("User_id", "3"), null);
+            while(cursor.moveToNext()) {
+                imgs.add(cursor.getString(cursor.getColumnIndex("Goods_img")));
+                names.add(cursor.getString(cursor.getColumnIndex("Goods_name")));
+                addrs.add(cursor.getString(cursor.getColumnIndex("Goods_path")));
+                goods_id.add(cursor.getString(cursor.getColumnIndex("Goods_id")));
+            }
+            db.close();
+            // Toast.makeText(this, cursor.getCount() + "", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String[] from = {"iv_query_goods", "tv_query_goods_name", "tv_query_goods_address", "tv_goods_id"};
+//        for (int i = 0; i < fruits.length; ++i) {
+//            Map<String, Object> map=new HashMap<String, Object>();
+//            map.put(from[0], fruits[i]);
+//            map.put(from[1], names.get(i));
+//            map.put(from[2], addrs.get(i));
+//            goods_list.add(map);
+//        }
+        for (int i = 0; i < names.size(); ++i) {
+            addData2GoodsList(imgs.get(i), names.get(i), addrs.get(i), goods_id.get(i));
+//            Map<String, Object> map=new HashMap<String, Object>();
+//            Bitmap bitmap = AppUtils.getBitmapFromSDCard(imgs.get(i));
+//            map.put(from[0], imgs.get(i));
+//            map.put(from[1], names.get(i));
+//            map.put(from[2], addrs.get(i));
+//            map.put(from[3], goods_id.get(i));
+//            goods_list.add(map);
         }
 
-        int[] to = {R.id.iv_query_goods, R.id.tv_query_goods_name, R.id.tv_query_goods_address};
+        int[] to = {R.id.iv_query_goods, R.id.tv_query_goods_name, R.id.tv_query_goods_address, R.id.tv_goods_id};
         goods_adapter = new SimpleAdapter(this, goods_list,
                 R.layout.body_query_goods_item, from, to);
+        goods_adapter.setViewBinder(new SimpleAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Object data, String arg2) {
+                if(view instanceof ImageView && data instanceof Bitmap){
+                    ImageView iv = (ImageView)view;
+                    iv.setImageBitmap((Bitmap)data);
+                    return true;
+                } if(view instanceof ImageView && data instanceof String) {
+                    ImageView iv = (ImageView)view;
+                    String url = "http://139.199.38.177/php/XHZH/PicturesProfile/" + data + ".JPG";
+                    Glide.with(getActivity())
+                            .load(url)
+                            .into(iv);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
         gv_query_goods.setAdapter(goods_adapter);
+
 
     }
     private void initDataAddress() {
@@ -535,5 +595,27 @@ public class MainActivity extends AppCompatActivity {
 
     public static Activity getActivity() {
         return MAINACTIVITY;
+    }
+    private void checkGoods() {
+        try {
+            SQLiteDatabase db = helper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("select * from Goods_id", null);
+            cursor.move(addr_list.size());
+            do {
+                //addData2GoodsList();
+            } while(cursor.moveToNext());
+            db.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void addData2GoodsList(String img_name, String Goods_name, String Goods_path, String Goods_id) {
+        String[] from = {"iv_query_goods", "tv_query_goods_name", "tv_query_goods_address", "tv_goods_id"};
+        Map<String, Object> map=new HashMap<String, Object>();
+        map.put(from[0], img_name);
+        map.put(from[1], Goods_name);
+        map.put(from[2], Goods_path);
+        map.put(from[3], Goods_id);
+        goods_list.add(map);
     }
 }

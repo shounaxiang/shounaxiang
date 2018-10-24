@@ -2,6 +2,9 @@ package com.xhzh.shounaxiang.util;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,5 +26,10 @@ public class AppUtils {
     }
     public static void showShortToast(String msg, Context context) {
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    }
+    public static Bitmap getBitmapFromSDCard(String img_name) {
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/xhzh/PicturesProfile/" + img_name + ".JPG";
+        return BitmapFactory.decodeFile(path);
     }
 }

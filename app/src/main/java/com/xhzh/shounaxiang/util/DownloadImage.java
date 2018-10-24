@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import java.io.File;
@@ -20,9 +22,13 @@ import java.net.URLConnection;
 public class DownloadImage extends AsyncTask<Void, Void, Bitmap> {
     private static final String TAG = "DownloadImage";
     String name;
-
+    Handler handler;
     public DownloadImage (String name) {
         this.name = name;
+    }
+    public DownloadImage (String name, Handler handler) {
+        this.name = name;
+        this.handler = handler;
     }
 
     @Override
@@ -43,6 +49,11 @@ public class DownloadImage extends AsyncTask<Void, Void, Bitmap> {
             image = BitmapFactory.decodeStream((InputStream)connection.getContent(), null, null);
             if(image != null) {
                 Log.d(TAG, " 下载成功");
+            }
+            if (handler != null) {
+                Message msg = new Message();
+                msg.what = 100;
+                handler.sendMessage(msg);
             }
             return image;
         } catch (Exception e) {
