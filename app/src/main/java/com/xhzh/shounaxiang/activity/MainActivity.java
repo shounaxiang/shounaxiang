@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
                 switch (position) {
                     case 0:
                         navigation.setSelectedItemId(R.id.navigation_query);
-                        checkGoods();
+                        initData();
                         break;
                     case 1:
                         navigation.setSelectedItemId(R.id.navigation_add);
@@ -459,7 +459,7 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.navigation_query:
                     viewPager.setCurrentItem(0);
-                    checkGoods();
+                    initData();
                     return true;
                 case R.id.navigation_add:
                     viewPager.setCurrentItem(1);
@@ -549,12 +549,17 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             SQLiteDatabase db = helper.getReadableDatabase();
-            db.execSQL("drop table xhzh.Goods");
-            db.execSQL("drop table xhzh.Space");
+            try {
+                db.execSQL("drop table xhzh.Goods");
+                db.execSQL("drop table xhzh.Space");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             finish();
         }
     }
     private void initData() {
+        goods_list.clear();
         List<String> imgs = new ArrayList<String>();
         List<String> names = new ArrayList<String>();
         List<String> addrs = new ArrayList<String>();
@@ -648,26 +653,7 @@ public class MainActivity extends AppCompatActivity {
     public static Activity getActivity() {
         return MAINACTIVITY;
     }
-    private void checkGoods() {
-        try {
-            SQLiteDatabase db = helper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("select * from Goods where User_id = "
-                    + pref.getString("User_id", "3")
-                    + "order by Goods_id desc", null);
-            cursor.move(goods_list.size() + 1);
-            do {
-                String img_name = cursor.getString(cursor.getColumnIndex("Goods_img"));
-                String Goods_name = cursor.getString(cursor.getColumnIndex("Goods_name"));
-                String Goods_path = cursor.getString(cursor.getColumnIndex("Goods_path"));
-                String Goods_id = cursor.getString(cursor.getColumnIndex("Goods_id"));
-                addData2GoodsList(img_name, Goods_name, Goods_path, Goods_id);
-            } while(cursor.moveToNext());
-            goods_adapter.notifyDataSetChanged();
-            db.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
     private void addData2GoodsList(String img_name, String Goods_name, String Goods_path, String Goods_id) {
         String[] from = {"iv_query_goods", "tv_query_goods_name", "tv_query_goods_address", "tv_goods_id"};
         Map<String, Object> map=new HashMap<String, Object>();
@@ -712,5 +698,11 @@ public class MainActivity extends AppCompatActivity {
                     });
         }
         return recognizer;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initData();
     }
 }

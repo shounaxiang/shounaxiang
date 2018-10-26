@@ -14,12 +14,18 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
 import com.xhzh.shounaxiang.listener.OnClickBackListener;
 import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 
 import org.angmarch.views.NiceSpinner;
+import org.apache.http.Header;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -69,9 +75,35 @@ public class GoodsMoreInfoActivity extends AppCompatActivity {
                 tv_goods_address.setText(dataset.get(position));
                 SQLiteDatabase db = helper.getWritableDatabase();
                 try {
-                    db.execSQL("update Goods set Space_name = " + dataset.get(position)
-                            + "where Space_id = "
-                            + tv_goods_id.getText().toString(), null);
+                    String sql = "update Goods set Goods_path = '" + dataset.get(position)
+                            + "' where Goods_id = "
+                            + tv_goods_id.getText().toString();
+                    db.execSQL(sql, new String[]{}); //参数不能为null
+                    AsyncHttpClient client = new AsyncHttpClient();
+                    client.setTimeout(3000);
+                    String url = "";
+                    RequestParams params = new RequestParams();
+                    params.put("Goods_id", tv_goods_name.getText().toString());
+                    params.put("Goods_path", dataset.get(position));
+                    client.post(url, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                            try {
+                                JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+                                boolean flag = json.getBoolean("flag");
+                                if (flag) {
+
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                        }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
