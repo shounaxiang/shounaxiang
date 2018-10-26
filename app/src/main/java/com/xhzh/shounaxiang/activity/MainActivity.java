@@ -630,8 +630,8 @@ public class MainActivity extends AppCompatActivity {
     }
     private void initDataAddress() {
         addr_list.clear();
-        String[] from = {"tv_address_name", "tv_address_id"};
-        int[] to = {R.id.tv_address_name, R.id.tv_address_id};
+        String[] from = {"tv_address_name", "tv_address_id", "iv_address_bg"};
+        int[] to = {R.id.tv_address_name, R.id.tv_address_id, R.id.iv_address_bg};
         try {
             SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
             SQLiteDatabase db = helper.getReadableDatabase();
@@ -640,7 +640,8 @@ public class MainActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 String space = cursor.getString(cursor.getColumnIndex("Space_name"));
                 int id = cursor.getInt(cursor.getColumnIndex("Space_id"));
-                addData2AddressList(space, id);
+                String space_img = cursor.getString(cursor.getColumnIndex("Space_img"));
+                addData2AddressList(space, id, space_img);
             }
             db.close();
         } catch (Exception e) {
@@ -649,6 +650,36 @@ public class MainActivity extends AppCompatActivity {
         addr_adapter = new SimpleAdapter(this, addr_list,
                 R.layout.body_query_addr_item, from, to);
         gv_query_addr.setAdapter(addr_adapter);
+        addr_adapter.setViewBinder(new SimpleAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Object data, String arg2) {
+                if(view instanceof ImageView && data instanceof Bitmap){
+                    ImageView iv = (ImageView)view;
+                    iv.setImageBitmap((Bitmap)data);
+                    return true;
+                } if(view instanceof ImageView && data instanceof String) {
+                    ImageView iv = (ImageView)view;
+                    String url = "http://139.199.38.177/php/XHZH/PicturesProfile/" + data + ".JPG";
+                    Glide.with(getActivity())
+                            .load(url)
+                            .into(iv);
+                    return true;
+                } else {
+                    return false;
+                }
+
+            }
+        });
+        gv_query_addr.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv_address_name = view.findViewById(R.id.tv_address_name);
+                Intent intent = new Intent(getActivity(), ShowGoodsByAddressActivity.class);
+                intent.putExtra("address_name", tv_address_name.getText().toString());
+                getActivity().startActivity(intent);
+
+            }
+        });
     }
     public static Activity getActivity() {
         return MAINACTIVITY;
@@ -663,11 +694,15 @@ public class MainActivity extends AppCompatActivity {
         map.put(from[3], Goods_id);
         goods_list.add(0, map);
     }
-    private void addData2AddressList(String name, int id) {
-        String[] from = {"tv_address_name", "tv_address_id"};
+    private void addData2AddressList(String name, int id, String space_img) {
+        String[] from = {"tv_address_name", "tv_address_id", "iv_address_bg"};
         Map<String, Object> map = new HashMap<String, Object>();
         map.put(from[0], name);
         map.put(from[1], id);
+        if (space_img == null || space_img.equals("")) {
+            space_img = "box";
+        }
+        map.put(from[2], space_img);
         addr_list.add(map);
     }
     public AudioSoundRecognizer getRecognizer() {

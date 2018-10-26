@@ -45,7 +45,8 @@
         <activity android:name=".activity.RegisterActivity" />
         <activity android:name=".activity.ModifyAddressActivity" />
         <activity android:name=".activity.QueryGoodsActivity" />
-        <activity android:name=".activity.GoodsMoreInfoActivity"></activity>
+        <activity android:name=".activity.GoodsMoreInfoActivity" />
+        <activity android:name=".activity.ShowGoodsByAddressActivity"></activity>
     </application>
 
 </manifest>

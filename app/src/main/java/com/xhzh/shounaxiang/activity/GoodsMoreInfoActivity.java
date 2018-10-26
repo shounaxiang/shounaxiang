@@ -1,5 +1,6 @@
 package com.xhzh.shounaxiang.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.loopj.android.http.AsyncHttpClient;
@@ -81,9 +83,9 @@ public class GoodsMoreInfoActivity extends AppCompatActivity {
                     db.execSQL(sql, new String[]{}); //参数不能为null
                     AsyncHttpClient client = new AsyncHttpClient();
                     client.setTimeout(3000);
-                    String url = "";
+                    String url = "http://112.74.109.111:8080/XHZH/Goods/updatePathById";
                     RequestParams params = new RequestParams();
-                    params.put("Goods_id", tv_goods_name.getText().toString());
+                    params.put("Goods_id", tv_goods_id.getText().toString());
                     params.put("Goods_path", dataset.get(position));
                     client.post(url, params, new AsyncHttpResponseHandler() {
                         @Override
@@ -92,16 +94,20 @@ public class GoodsMoreInfoActivity extends AppCompatActivity {
                                 JSONObject json = new JSONObject(new String(bytes, "utf-8"));
                                 boolean flag = json.getBoolean("flag");
                                 if (flag) {
-
+                                    Toast.makeText(MainActivity.getActivity(), "修改成功", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    Toast.makeText(MainActivity.getActivity(), "修改失败1", Toast.LENGTH_SHORT).show();
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
+                                Toast.makeText(MainActivity.getActivity(), "修改失败2", Toast.LENGTH_SHORT).show();
                             }
                         }
 
                         @Override
                         public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
-
+                            Toast.makeText(MainActivity.getActivity(), "修改失败3", Toast.LENGTH_SHORT).show();
                         }
                     });
                 } catch (Exception e) {

@@ -1,33 +1,56 @@
 package com.xhzh.shounaxiang.activity;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.ContentUris;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.JsonObject;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
+import com.xhzh.shounaxiang.listener.BottomMenuOnClinkListener;
 import com.xhzh.shounaxiang.listener.OnClickBackListener;
 import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 import com.xhzh.shounaxiang.util.AppUtils;
+import com.xhzh.shounaxiang.util.Constant;
+import com.xhzh.shounaxiang.util.SaveGoodsImage;
+import com.xhzh.shounaxiang.util.UploadImage;
 
 import org.apache.http.Header;
 import org.json.JSONObject;
@@ -40,18 +63,141 @@ import java.util.Map;
 public class ModifyAddressActivity extends AppCompatActivity {
     GridView gv_address;
     ImageView iv_back;
+    int pos = 0;
     Button btn_add_address;
     private SimpleAdapter addr_adapter;
     private List<Map<String, Object>> addr_list;
     MyDatabaseHelper helper;
+    Activity activity;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case Constant.CHANGE_BG:
+                try {
+                    Bundle extras = data.getExtras();
+                    Bitmap bitmap = (Bitmap) extras.get("data");
+                    String name = System.currentTimeMillis() + "";
+                    new UploadImage(bitmap, name).execute();
+                    View view = gv_address.getChildAt(pos);
+                    ImageView iv_address_bg = view.findViewById(R.id.iv_address_bg);
+                    TextView tv_address_id = view.findViewById(R.id.tv_address_id);
+                    iv_address_bg.setImageBitmap(bitmap);
+                    SQLiteDatabase db = helper.getWritableDatabase();
+                    try {
+                        db.execSQL("update Space set Space_img = " + name
+                                +" where Space_id = " + tv_address_id.getText().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        db.close();
+                    }
+                    AsyncHttpClient client = new AsyncHttpClient();
+                    client.setTimeout(3000);
+                    String url = "http://112.74.109.111:8080/XHZH/space/updateImgById";
+                    RequestParams params = new RequestParams();
+                    params.put("Space_id", tv_address_id.getText().toString());
+                    params.put("Space_img", name);
+                    client.post(url, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                            try {
+                                JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+                                boolean flag = json.getBoolean("flag");
+                                if (flag) {
+                                    Toast.makeText(activity, "修改成功", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    Toast.makeText(activity, "修改失败1", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(activity, "修改失败2", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                        }
+                    });
+
+                }catch (Exception e) {
+
+                }
+                break;
+            case Constant.CHANGE_BG_CHOOSE_PHOTO:
+                if (resultCode == RESULT_OK) {
+                    // 判断手机系统版本号
+                    String image_path;
+                    if (Build.VERSION.SDK_INT >= 19) {
+                        // a4.4及以上系统使用这个方法处理图片
+                        image_path = handleImageOnKitKat(data);
+                    } else {
+                        // a4.4以下系统使用这个方法处理图片
+                        image_path = handleImageBeforeKitKat(data);
+                    }
+                    Bitmap bitmap = BitmapFactory.decodeFile(image_path);
+                    String name = System.currentTimeMillis() + "";
+                    new UploadImage(bitmap, name).execute();
+                    View view = gv_address.getChildAt(pos);
+                    ImageView iv_address_bg = view.findViewById(R.id.iv_address_bg);
+                    TextView tv_address_id = view.findViewById(R.id.tv_address_id);
+                    iv_address_bg.setImageBitmap(bitmap);
+                    SQLiteDatabase db = helper.getWritableDatabase();
+                    try {
+                        db.execSQL("update Space set Space_img = " + name
+                                +" where Space_id = " + tv_address_id.getText().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        db.close();
+                    }
+                    AsyncHttpClient client = new AsyncHttpClient();
+                    client.setTimeout(3000);
+                    String url = "http://112.74.109.111:8080/XHZH/space/updateImgById";
+                    RequestParams params = new RequestParams();
+                    params.put("Space_id", tv_address_id.getText().toString());
+                    params.put("Space_img", name);
+                    client.post(url, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                            try {
+                                JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+                                boolean flag = json.getBoolean("flag");
+                                if (flag) {
+                                    Toast.makeText(activity, "修改成功", Toast.LENGTH_SHORT).show();
+                                }
+                                else {
+                                    Toast.makeText(activity, "修改失败1", Toast.LENGTH_SHORT).show();
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                Toast.makeText(activity, "修改失败2", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                        }
+                    });
+                }
+                break;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_modify_address);
         helper = new MyDatabaseHelper(this, DatabaseConfigure.db_name, null, DatabaseConfigure.version);
         initView();
+
     }
     private void initView() {
+        activity = this;
         iv_back = this.findViewById(R.id.iv_back);
         iv_back.setOnClickListener(new OnClickBackListener(this));
         gv_address = findViewById(R.id.gv_address);
@@ -63,14 +209,13 @@ public class ModifyAddressActivity extends AppCompatActivity {
                 alert_edit();
             }
         });
+        addr_list = new ArrayList<Map<String, Object>>();
         initData();
-
     }
     String[] from;
     private void initData() {
-        addr_list = new ArrayList<Map<String, Object>>();
-        from = new String[]{"tv_address_name", "tv_address_id"};
-        int[] to = {R.id.tv_address_name, R.id.tv_address_id};
+        from = new String[]{"tv_address_name", "tv_address_id", "iv_address_bg"};
+        int[] to = {R.id.tv_address_name, R.id.tv_address_id, R.id.iv_address_bg};
         try {
             SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
             SQLiteDatabase db = helper.getReadableDatabase();
@@ -78,8 +223,9 @@ public class ModifyAddressActivity extends AppCompatActivity {
                     + pref.getString("User_id", "798018"), null);
             while (cursor.moveToNext()) {
                 String space = cursor.getString(cursor.getColumnIndex("Space_name"));
+                String space_img = cursor.getString(cursor.getColumnIndex("Space_img"));
                 int id = cursor.getInt(cursor.getColumnIndex("Space_id"));
-                addData2AddressList(space, id);
+                addData2AddressList(space, id, space_img);
             }
             db.close();
         } catch (Exception e) {
@@ -87,6 +233,26 @@ public class ModifyAddressActivity extends AppCompatActivity {
         }
         addr_adapter = new SimpleAdapter(this, addr_list,
                 R.layout.body_modify_address_item, from, to);
+        addr_adapter.setViewBinder(new SimpleAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Object data, String arg2) {
+                if(view instanceof ImageView && data instanceof Bitmap){
+                    ImageView iv = (ImageView)view;
+                    iv.setImageBitmap((Bitmap)data);
+                    return true;
+                } if(view instanceof ImageView && data instanceof String) {
+                    ImageView iv = (ImageView)view;
+                    String url = "http://139.199.38.177/php/XHZH/PicturesProfile/" + data + ".JPG";
+                    Glide.with(activity)
+                            .load(url)
+                            .into(iv);
+                    return true;
+                } else {
+                    return false;
+                }
+
+            }
+        });
         gv_address.setAdapter(addr_adapter);
         gv_address.setOnItemClickListener(new MyListener(this));
     }
@@ -173,11 +339,12 @@ public class ModifyAddressActivity extends AppCompatActivity {
             final ImageView iv_del = view.findViewById(R.id.iv_delete_address);
             final TextView tv_address = view.findViewById(R.id.tv_address_name);
             final TextView tv_address_id = view.findViewById(R.id.tv_address_id);
-            tv_address.setOnClickListener(new View.OnClickListener() {
+            final ImageView iv_address_bg = view.findViewById(R.id.iv_address_bg);
+            iv_address_bg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(activity, tv_address_id.getText().toString(),
-                            Toast.LENGTH_SHORT).show();
+                    setDialog();
+                    pos = position;
                 }
             });
             iv_del.setOnClickListener(new View.OnClickListener() {
@@ -238,16 +405,112 @@ public class ModifyAddressActivity extends AppCompatActivity {
                 }
             });
 
-            Toast.makeText(MainActivity.getActivity(), tv_address_id.getText().toString(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void addData2AddressList(String name, int id) {
-        String[] from = {"tv_address_name", "tv_address_id"};
+    private void addData2AddressList(String name, int id, String space_img) {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put(from[0], name);
         map.put(from[1], id);
+        if (space_img == null || space_img.equals("")) {
+            space_img = "box";
+        }
+        map.put(from[2], space_img);
         addr_list.add(map);
+    }
+
+    static Dialog mCameraDialog;
+    private void setDialog() {
+        mCameraDialog = new Dialog(this, R.style.BottomDialog);
+        LinearLayout root = (LinearLayout) LayoutInflater.from(this).inflate(
+                R.layout.bottom_dialog, null);
+        //初始化视图
+        root.findViewById(R.id.tv_choose_img).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openAlbum();
+                mCameraDialog.dismiss();
+            }
+        });
+        root.findViewById(R.id.tv_open_camera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                activity.startActivityForResult(intent, Constant.CHANGE_BG);
+                if (mCameraDialog != null) mCameraDialog.dismiss();
+                mCameraDialog.dismiss();
+            }
+        });
+        root.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCameraDialog.dismiss(); // 取消菜单
+                Toast.makeText(activity, "取消", Toast.LENGTH_SHORT).show();
+            }
+        });
+        mCameraDialog.setContentView(root);
+        Window dialogWindow = mCameraDialog.getWindow();
+        dialogWindow.setGravity(Gravity.BOTTOM);
+//        dialogWindow.setWindowAnimations(R.style.dialogstyle); // 添加动画
+        WindowManager.LayoutParams lp = dialogWindow.getAttributes(); // 获取对话框当前的参数值
+        lp.x = 0; // 新位置X坐标
+        lp.y = 0; // 新位置Y坐标
+        lp.width = (int) this.getResources().getDisplayMetrics().widthPixels; // 宽度
+        root.measure(0, 0);
+        lp.height = root.getMeasuredHeight();
+
+        lp.alpha = 9f; // 透明度
+        dialogWindow.setAttributes(lp);
+        mCameraDialog.show();
+    }
+    private void openAlbum() { //选择图片就是这么简单
+        Intent intent = new Intent("android.intent.action.GET_CONTENT");
+        intent.setType("image/*");
+        this.startActivityForResult(intent, Constant.CHANGE_BG_CHOOSE_PHOTO); // 打开相册
+    }
+    private String handleImageBeforeKitKat(Intent data) {
+        Uri uri = data.getData();
+        String imagePath = getImagePath(uri, null);
+        // displayImage(imagePath);
+        return imagePath;
+    }
+    @TargetApi(19)
+    private String handleImageOnKitKat(Intent data) {
+        String imagePath = null;
+        Uri uri = data.getData();
+        Log.d("TAG", "handleImageOnKitKat: uri is " + uri);
+        if (DocumentsContract.isDocumentUri(this, uri)) {
+            // 如果是document类型的Uri，则通过document id处理
+            String docId = DocumentsContract.getDocumentId(uri);
+            if("com.android.providers.media.documents".equals(uri.getAuthority())) {
+                String id = docId.split(":")[1]; // 解析出数字格式的id
+                String selection = MediaStore.Images.Media._ID + "=" + id;
+                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(docId));
+                imagePath = getImagePath(contentUri, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是content类型的Uri，则使用普通方式处理
+            imagePath = getImagePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            // 如果是file类型的Uri，直接获取图片路径即可
+            imagePath = uri.getPath();
+        }
+        //displayImage(imagePath); // 根据图片路径显示图片
+        return imagePath;
+    }
+    private String getImagePath(Uri uri, String selection) {
+        String path = null;
+        // 通过Uri和selection来获取真实的图片路径
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
     }
 
 }

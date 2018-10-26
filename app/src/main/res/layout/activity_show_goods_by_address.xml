@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activity.ShowGoodsByAddressActivity">
+    <RelativeLayout
+        style="@style/TitleNavigation">
+        <ImageView
+            android:visibility="invisible"
+            android:id="@+id/iv_back"
+            android:layout_width="@dimen/top_navigation_back_width_mid"
+            android:layout_height="match_parent"
+            android:src="@drawable/icon_back"/>
+        <TextView
+            android:id="@+id/tv_classify"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="分类查看"/>
+    </RelativeLayout>
+    <GridView
+        android:layout_marginTop="20dp"
+        android:stretchMode="spacingWidthUniform"
+        android:id="@+id/gv_query_goods"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:numColumns="2"
+        android:columnWidth="160dp"
+        android:layout_marginBottom="60dp"/>
+
+</LinearLayout>
