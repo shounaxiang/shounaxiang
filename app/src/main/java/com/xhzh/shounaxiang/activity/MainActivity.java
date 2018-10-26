@@ -38,6 +38,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -53,6 +54,8 @@ import android.widget.Toast;
 import com.alibaba.idst.nls.NlsListener;
 import com.alibaba.idst.nls.StageListener;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.BitmapDecoder;
+import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
 import com.xhzh.shounaxiang.dataclass.User;
@@ -72,7 +75,9 @@ import com.xhzh.shounaxiang.util.UploadImage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -594,10 +599,28 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     return false;
                 }
+
             }
         });
         gv_query_goods.setAdapter(goods_adapter);
-
+        gv_query_goods.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView tv_goods_id = view.findViewById(R.id.tv_goods_id);
+                TextView tv_goods_name = view.findViewById(R.id.tv_query_goods_name);
+                TextView tv_goods_address = view.findViewById(R.id.tv_query_goods_address);
+                ImageView iv_query_goods = view.findViewById(R.id.iv_query_goods);
+                Toast.makeText(getActivity(), tv_goods_id.getText().toString(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), GoodsMoreInfoActivity.class);
+                intent.putExtra("Goods_id", tv_goods_id.getText().toString());
+                intent.putExtra("Goods_name", tv_goods_name.getText().toString());
+                intent.putExtra("Goods_address", tv_goods_address.getText().toString());
+                //intent.putExtra("Goods_img", ((BitmapDrawable)iv_query_goods.getDrawable()).getBitmap());
+                Bitmap bitmap = ((GlideBitmapDrawable)iv_query_goods.getDrawable()).getBitmap();
+                intent.putExtra("bitmap", bitmap);
+                getActivity().startActivity(intent);
+            }
+        });
 
     }
     private void initDataAddress() {
