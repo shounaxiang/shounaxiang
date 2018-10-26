@@ -76,5 +76,9 @@ public class AudioSoundRecognizer {
             mNlsClient.stop();
         recognizing = false;
     }
+
+    public boolean isRecognizing() {
+        return recognizing;
+    }
 }
 

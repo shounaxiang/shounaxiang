@@ -34,7 +34,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             + "Space_img text,"
             + "Space_belong text,"
             + "Space_level text,"
-            + "User_id"
+            + "User_id text"
             + ")";
 
 

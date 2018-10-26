@@ -50,6 +50,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.idst.nls.NlsListener;
+import com.alibaba.idst.nls.StageListener;
 import com.bumptech.glide.Glide;
 import com.xhzh.shounaxiang.R;
 import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
@@ -61,11 +63,15 @@ import com.xhzh.shounaxiang.listener.ModifyAddress_OnClickListener;
 import com.xhzh.shounaxiang.listener.Query_OnClickListener;
 import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 import com.xhzh.shounaxiang.util.AppUtils;
+import com.xhzh.shounaxiang.util.AudioSoundRecognizer;
 import com.xhzh.shounaxiang.util.Constant;
 import com.xhzh.shounaxiang.util.DownloadImage;
 import com.xhzh.shounaxiang.util.PermUtil;
 import com.xhzh.shounaxiang.util.SaveGoodsImage;
 import com.xhzh.shounaxiang.util.UploadImage;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -98,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     EditText et_goods_name;
     Button btn_add_goods;
     ImageView iv_query;
+    Button btn_voice_input;
+    private static AudioSoundRecognizer recognizer;
     private MyDatabaseHelper helper;
     private List<Map<String, Object>> goods_list, addr_list;
     private SimpleAdapter goods_adapter, addr_adapter;
@@ -133,7 +141,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ActivityCompat.requestPermissions(this, new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
         }, 1);
         if(!PermUtil.checkPerm(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             //ToastUtils.showShortToast("对不起，没有该权限，软件无法正常运行");
@@ -145,18 +154,22 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "对不起，没有拍照权限，软件无法正常运行",
                     Toast.LENGTH_SHORT).show();
         }
+        if (!PermUtil.checkPerm(this, Manifest.permission.RECORD_AUDIO)) {
+            Toast.makeText(MainActivity.this, "对不起，没有录音权限，软件无法正常运行",
+                    Toast.LENGTH_SHORT).show();
+        }
         initView();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         switch (requestCode) {
-            case MODIFY_NAME:
+            case Constant.MODIFY_NAME:
                 if(data != null) {
                     tv_nickname.setText(data.getStringExtra(NICKNAME));
                 }
                 break;
-            case CHOOSE_PHOTO:
+            case Constant.CHOOSE_PHOTO:
                 if (resultCode == RESULT_OK) {
                     // 判断手机系统版本号
                     String image_path;
@@ -194,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
                     setNewGoodsImage(image_path);
                 }
                 break;
+            case Constant.MODIFY_ADDRESS:
+                initDataAddress();
+                break;
         }
     }
 
@@ -204,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
         //new DownloadImage(pref.getString("User_phone", "default")).execute();
         View body_query = getLayoutInflater().inflate(R.layout.body_query, null);
         View body_add = getLayoutInflater().inflate(R.layout.body_add, null);
+        btn_voice_input = body_add.findViewById(R.id.btn_voice_input);
         iv_add_goods = body_add.findViewById(R.id.iv_add_goods);
         iv_add_goods.setOnClickListener(new BottomMenuOnClinkListener(this));
         View body_mine = getLayoutInflater().inflate(R.layout.body_mine, null);
@@ -239,8 +256,8 @@ public class MainActivity extends AppCompatActivity {
         tv_my_birth.setText(pref.getString("User_birthday", ""));
         tv_logout = body_mine.findViewById(R.id.tv_logout);
         iv_avatar = body_mine.findViewById(R.id.iv_avatar);
-        File path = new File(User.LocalPritruesProfile, pref.getString("User_phone", "111") + ".JPG");
-        iv_avatar.setImageURI(Uri.fromFile(path));
+        //File path = new File(User.LocalPritruesProfile, pref.getString("User_phone", "111") + ".JPG");
+        //iv_avatar.setImageURI(Uri.fromFile(path));
         Glide.with(this).load("http://139.199.38.177/php/XHZH/PicturesProfile/"
                 + pref.getString("User_phone", "") + ".JPG").into(iv_avatar);
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.my_portrait);
@@ -262,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
                 switch (position) {
                     case 0:
                         navigation.setSelectedItemId(R.id.navigation_query);
+                        checkGoods();
                         break;
                     case 1:
                         navigation.setSelectedItemId(R.id.navigation_add);
@@ -391,6 +409,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         initData(); initDataAddress();
+        recognizer = getRecognizer();
+        btn_voice_input.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (recognizer.isRecognizing()) {
+                    recognizer.stopRecognize();
+                    btn_voice_input.setText("语音输入");
+                }
+                else {
+                    recognizer.startRecognize();
+                    btn_voice_input.setText("识别中...点击停止");
+                }
+            }
+        });
+
     }
     private PagerAdapter pagerAdapter = new PagerAdapter() {
         @Override
@@ -421,6 +454,7 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.navigation_query:
                     viewPager.setCurrentItem(0);
+                    checkGoods();
                     return true;
                 case R.id.navigation_add:
                     viewPager.setCurrentItem(1);
@@ -509,20 +543,21 @@ public class MainActivity extends AppCompatActivity {
             handler.sendEmptyMessageDelayed(EXIT, 2000);
         }
         else {
+            SQLiteDatabase db = helper.getReadableDatabase();
+            db.execSQL("drop table xhzh.Goods");
+            db.execSQL("drop table xhzh.Space");
             finish();
         }
     }
     private void initData() {
-//        int[] fruits = {R.drawable.fruit1, R.drawable.fruit2, R.drawable.fruit3, R.drawable.fruit4};
-//        String[] names = {"荔枝", "柿子", "桃子", "草莓"};
-//        String[] addrs = {"盘子", "桌子", "箱子", "篮子"};
         List<String> imgs = new ArrayList<String>();
         List<String> names = new ArrayList<String>();
         List<String> addrs = new ArrayList<String>();
         List<String> goods_id = new ArrayList<String>();
         try {
             SQLiteDatabase db = helper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("select * from Goods where User_id = " + pref.getString("User_id", "3"), null);
+            Cursor cursor = db.rawQuery("select * from Goods where User_id = "
+                    + pref.getString("User_id", "3"), null);
             while(cursor.moveToNext()) {
                 imgs.add(cursor.getString(cursor.getColumnIndex("Goods_img")));
                 names.add(cursor.getString(cursor.getColumnIndex("Goods_name")));
@@ -535,22 +570,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         String[] from = {"iv_query_goods", "tv_query_goods_name", "tv_query_goods_address", "tv_goods_id"};
-//        for (int i = 0; i < fruits.length; ++i) {
-//            Map<String, Object> map=new HashMap<String, Object>();
-//            map.put(from[0], fruits[i]);
-//            map.put(from[1], names.get(i));
-//            map.put(from[2], addrs.get(i));
-//            goods_list.add(map);
-//        }
         for (int i = 0; i < names.size(); ++i) {
             addData2GoodsList(imgs.get(i), names.get(i), addrs.get(i), goods_id.get(i));
-//            Map<String, Object> map=new HashMap<String, Object>();
-//            Bitmap bitmap = AppUtils.getBitmapFromSDCard(imgs.get(i));
-//            map.put(from[0], imgs.get(i));
-//            map.put(from[1], names.get(i));
-//            map.put(from[2], addrs.get(i));
-//            map.put(from[3], goods_id.get(i));
-//            goods_list.add(map);
         }
 
         int[] to = {R.id.iv_query_goods, R.id.tv_query_goods_name, R.id.tv_query_goods_address, R.id.tv_goods_id};
@@ -580,30 +601,45 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void initDataAddress() {
-        String[] from = {"tv_address_name"};
-        int[] to = {R.id.tv_address_name};
-        String[] address_name = {"客厅", "卧室", "厨房"};
-        for (String name: address_name) {
-            Map<String, Object> map = new HashMap<String, Object>();
-            map.put(from[0], name);
-            addr_list.add(map);
+        addr_list.clear();
+        String[] from = {"tv_address_name", "tv_address_id"};
+        int[] to = {R.id.tv_address_name, R.id.tv_address_id};
+        try {
+            SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
+            SQLiteDatabase db = helper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("select * from Space where User_id = "
+                    + pref.getString("User_id", "798018"), null);
+            while (cursor.moveToNext()) {
+                String space = cursor.getString(cursor.getColumnIndex("Space_name"));
+                int id = cursor.getInt(cursor.getColumnIndex("Space_id"));
+                addData2AddressList(space, id);
+            }
+            db.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         addr_adapter = new SimpleAdapter(this, addr_list,
                 R.layout.body_query_addr_item, from, to);
         gv_query_addr.setAdapter(addr_adapter);
     }
-
     public static Activity getActivity() {
         return MAINACTIVITY;
     }
     private void checkGoods() {
         try {
             SQLiteDatabase db = helper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("select * from Goods_id", null);
-            cursor.move(addr_list.size());
+            Cursor cursor = db.rawQuery("select * from Goods where User_id = "
+                    + pref.getString("User_id", "3")
+                    + "order by Goods_id desc", null);
+            cursor.move(goods_list.size() + 1);
             do {
-                //addData2GoodsList();
+                String img_name = cursor.getString(cursor.getColumnIndex("Goods_img"));
+                String Goods_name = cursor.getString(cursor.getColumnIndex("Goods_name"));
+                String Goods_path = cursor.getString(cursor.getColumnIndex("Goods_path"));
+                String Goods_id = cursor.getString(cursor.getColumnIndex("Goods_id"));
+                addData2GoodsList(img_name, Goods_name, Goods_path, Goods_id);
             } while(cursor.moveToNext());
+            goods_adapter.notifyDataSetChanged();
             db.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -616,6 +652,42 @@ public class MainActivity extends AppCompatActivity {
         map.put(from[1], Goods_name);
         map.put(from[2], Goods_path);
         map.put(from[3], Goods_id);
-        goods_list.add(map);
+        goods_list.add(0, map);
+    }
+    private void addData2AddressList(String name, int id) {
+        String[] from = {"tv_address_name", "tv_address_id"};
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put(from[0], name);
+        map.put(from[1], id);
+        addr_list.add(map);
+    }
+    public AudioSoundRecognizer getRecognizer() {
+        if (recognizer == null) {
+            recognizer = new AudioSoundRecognizer(
+                    this,
+                    new NlsListener() {
+                        @Override
+                        public void onRecognizingResult(int i, NlsListener.RecognizedResult recognizedResult) {
+                            if (i == 0)
+                                try {
+                                    JSONObject jsonObject = new JSONObject(recognizedResult.asr_out);
+                                    String tmp = jsonObject.getString("result"); // 识别出来的的字符串
+                                    et_goods_name.setText(tmp);
+                                    //sendRecorder(tmp);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            else
+                                Log.e(TAG, "onRecognizingResult: error: " + i);
+                        }
+                    },
+                    new StageListener() {
+                        @Override
+                        public void onVoiceVolume(int i) {
+                            //micDrawable.setLevel(i * 50 + LEVEL_INIT);
+                        }
+                    });
+        }
+        return recognizer;
     }
 }

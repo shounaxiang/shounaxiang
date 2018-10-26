@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 
+import com.xhzh.shounaxiang.activity.MainActivity;
 import com.xhzh.shounaxiang.activity.ModifyAddressActivity;
+import com.xhzh.shounaxiang.util.Constant;
 
 /**
  * Created by wjsay on 2018/10/13
@@ -18,6 +20,6 @@ public class ModifyAddress_OnClickListener implements View.OnClickListener {
     @Override
     public void onClick(View view) {
         Intent intent = new Intent(activity, ModifyAddressActivity.class);
-        activity.startActivity(intent);
+        activity.startActivityForResult(intent, Constant.MODIFY_ADDRESS);
     }
 }

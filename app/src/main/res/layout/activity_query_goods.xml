@@ -38,6 +38,7 @@
             android:hint="待查询的物品名"
             android:singleLine="true" />
         <ImageView
+            android:id="@+id/iv_query"
             android:layout_marginHorizontal="5dp"
             android:layout_weight="1"
             android:layout_alignParentRight="true"
@@ -45,6 +46,18 @@
             android:layout_height="60dp"
             android:src="@drawable/query"/>
     </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btn_voice_input"
+            android:layout_marginRight="10dp"
+            android:layout_alignParentRight="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="语音输入"/>
+    </RelativeLayout>
+
     <RelativeLayout
         android:layout_marginTop="30dp"
         android:layout_width="match_parent"

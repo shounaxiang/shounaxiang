@@ -3,6 +3,8 @@ package com.xhzh.shounaxiang.activity;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,11 +19,14 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.xhzh.shounaxiang.R;
+import com.xhzh.shounaxiang.dataclass.DatabaseConfigure;
 import com.xhzh.shounaxiang.listener.OnClickBackListener;
+import com.xhzh.shounaxiang.localdatabase.MyDatabaseHelper;
 import com.xhzh.shounaxiang.util.AppUtils;
 
 import org.apache.http.Header;
@@ -38,10 +43,12 @@ public class ModifyAddressActivity extends AppCompatActivity {
     Button btn_add_address;
     private SimpleAdapter addr_adapter;
     private List<Map<String, Object>> addr_list;
+    MyDatabaseHelper helper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_modify_address);
+        helper = new MyDatabaseHelper(this, DatabaseConfigure.db_name, null, DatabaseConfigure.version);
         initView();
     }
     private void initView() {
@@ -62,13 +69,21 @@ public class ModifyAddressActivity extends AppCompatActivity {
     String[] from;
     private void initData() {
         addr_list = new ArrayList<Map<String, Object>>();
-        from = new String[]{"tv_address_name",};
-        int[] to = {R.id.tv_address_name};
-        String[] addr_name = {"客厅", "卧室", "厨房", "庭院"};
-        for (String name: addr_name) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put(from[0], name);
-            addr_list.add(map);
+        from = new String[]{"tv_address_name", "tv_address_id"};
+        int[] to = {R.id.tv_address_name, R.id.tv_address_id};
+        try {
+            SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
+            SQLiteDatabase db = helper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("select * from Space where User_id = "
+                    + pref.getString("User_id", "798018"), null);
+            while (cursor.moveToNext()) {
+                String space = cursor.getString(cursor.getColumnIndex("Space_name"));
+                int id = cursor.getInt(cursor.getColumnIndex("Space_id"));
+                addData2AddressList(space, id);
+            }
+            db.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         addr_adapter = new SimpleAdapter(this, addr_list,
                 R.layout.body_modify_address_item, from, to);
@@ -96,11 +111,12 @@ public class ModifyAddressActivity extends AppCompatActivity {
         }
         else {
             final String new_address = address;
+            SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
+            final String user_id = pref.getString("User_id", null);
             AsyncHttpClient client = new AsyncHttpClient();
             client.setTimeout(3000);
             RequestParams params = new RequestParams();
-            SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
-            params.put("User_id", pref.getString("User_id", null));
+            params.put("User_id", user_id);
             params.put("new_address", new_address);
             String url = "http://112.74.109.111:8080/XHZH/space/add";
             client.post(url, params, new AsyncHttpResponseHandler() {
@@ -109,12 +125,23 @@ public class ModifyAddressActivity extends AppCompatActivity {
                     try {
                         JSONObject json = new JSONObject(new String(bytes, "utf-8"));
                         boolean flag = json.getBoolean("flag");
+                        String id = json.getString("id");
                         if (flag) {
                             Map map = new HashMap<String, Object>();
                             map.put(from[0], new_address);
+                            map.put(from[1], id);
                             addr_list.add(0, map);
                             addr_adapter.notifyDataSetChanged();  // 数据变化时，哈哈
                             Toast.makeText(MainActivity.getActivity(), "添加成功", Toast.LENGTH_SHORT).show();
+                            SQLiteDatabase db = helper.getWritableDatabase();
+                            try {
+                                db.execSQL("insert into Space (Space_name, Space_id, User_id) values(?, ?, ?)",
+                                        new String[]{new_address, id, user_id});
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                db.close();
+                            }
                         }
                         else {
                             Toast.makeText(MainActivity.getActivity(), "{'flag': 'false'}", Toast.LENGTH_SHORT).show();
@@ -145,6 +172,14 @@ public class ModifyAddressActivity extends AppCompatActivity {
                                 long id) {
             final ImageView iv_del = view.findViewById(R.id.iv_delete_address);
             final TextView tv_address = view.findViewById(R.id.tv_address_name);
+            final TextView tv_address_id = view.findViewById(R.id.tv_address_id);
+            tv_address.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(activity, tv_address_id.getText().toString(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
             iv_del.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -156,8 +191,41 @@ public class ModifyAddressActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             // AppUtils.showShortToast("" + position, MainActivity.getActivity());
-                            addr_list.remove(position);
-                            addr_adapter.notifyDataSetChanged();
+                            AsyncHttpClient client = new AsyncHttpClient();
+                            client.setTimeout(3000);
+                            String url = "http://112.74.109.111:8080/XHZH/space/deleteById";
+                            RequestParams params = new RequestParams();
+                            final String space_id = tv_address_id.getText().toString().trim();
+                            params.put("space_id", space_id);
+                            client.post(url, params, new AsyncHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int i, Header[] headers, byte[] bytes) {
+                                    try {
+                                        JSONObject json = new JSONObject(new String(bytes, "utf-8"));
+                                        boolean flag = json.getBoolean("flag");
+                                        if (flag) {
+                                            addr_list.remove(position);
+                                            addr_adapter.notifyDataSetChanged();
+                                            SQLiteDatabase db = helper.getWritableDatabase();
+                                            try {
+                                                db.execSQL("delete from Space where Space_id = " + space_id);
+                                                Toast.makeText(activity, "删除成功", Toast.LENGTH_SHORT).show();
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            } finally {
+                                                db.close();
+                                            }
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(int i, Header[] headers, byte[] bytes, Throwable throwable) {
+
+                                }
+                            });
                         }
                     });
                     dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -170,8 +238,16 @@ public class ModifyAddressActivity extends AppCompatActivity {
                 }
             });
 
-            //Toast.makeText(MainActivity.getActivity(), "" + id + " " + position, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.getActivity(), tv_address_id.getText().toString(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void addData2AddressList(String name, int id) {
+        String[] from = {"tv_address_name", "tv_address_id"};
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put(from[0], name);
+        map.put(from[1], id);
+        addr_list.add(map);
     }
 
 }

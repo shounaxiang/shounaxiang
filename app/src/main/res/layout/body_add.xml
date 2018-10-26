@@ -22,6 +22,14 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="180dp">
+
+        <Button
+            android:id="@+id/btn_voice_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="语音输入" />
         <EditText
             android:singleLine="true"
             android:id="@+id/et_goods_name"

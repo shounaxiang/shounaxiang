@@ -6,5 +6,5 @@ package com.xhzh.shounaxiang.dataclass;
  */
 public class DatabaseConfigure {
     public static String db_name = "xhzh.db";
-    public static int version = 3;
+    public static int version = 4;
 }

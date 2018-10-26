@@ -9,5 +9,6 @@ public class Constant {
             MODIFY_NAME = 1,
             CHOOSE_PHOTO = 2,
             ADD_GOODS = 3,
-            CHOOSE_GOODS = 4;
+            CHOOSE_GOODS = 4,
+            MODIFY_ADDRESS = 5;
 }
