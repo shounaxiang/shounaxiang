@@ -386,6 +386,16 @@ public class MainActivity extends AppCompatActivity {
                         SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
                         editor.putBoolean("LOGIN_STATE", false);
                         editor.apply();
+                        SQLiteDatabase db = helper.getWritableDatabase();
+                        try {
+                            db.execSQL("delete from Goods", new String[]{});
+                            db.execSQL("delete from Space", new String[]{});
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            db.close();
+                        }
+                        finish();
                         finish();
                     }
                 });
@@ -548,13 +558,6 @@ public class MainActivity extends AppCompatActivity {
             handler.sendEmptyMessageDelayed(EXIT, 2000);
         }
         else {
-            SQLiteDatabase db = helper.getReadableDatabase();
-            try {
-                db.execSQL("drop table xhzh.Goods");
-                db.execSQL("drop table xhzh.Space");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             finish();
         }
     }
@@ -623,7 +626,11 @@ public class MainActivity extends AppCompatActivity {
                 //intent.putExtra("Goods_img", ((BitmapDrawable)iv_query_goods.getDrawable()).getBitmap());
                 Bitmap bitmap = ((GlideBitmapDrawable)iv_query_goods.getDrawable()).getBitmap();
                 intent.putExtra("bitmap", bitmap);
-                getActivity().startActivity(intent);
+                try {
+                    getActivity().startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 

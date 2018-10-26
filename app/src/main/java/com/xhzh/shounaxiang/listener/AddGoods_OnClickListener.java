@@ -51,7 +51,11 @@ public class AddGoods_OnClickListener implements View.OnClickListener {
     }
     @Override
     public void onClick(View view) {
-        progressDialog.show();
+        try {
+            progressDialog.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         helper = new MyDatabaseHelper(activity, DatabaseConfigure.db_name, null, DatabaseConfigure.version);
         AsyncHttpClient client = new AsyncHttpClient();
         client.setTimeout(3000);

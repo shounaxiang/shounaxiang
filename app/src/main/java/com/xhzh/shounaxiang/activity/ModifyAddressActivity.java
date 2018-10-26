@@ -296,6 +296,7 @@ public class ModifyAddressActivity extends AppCompatActivity {
                             Map map = new HashMap<String, Object>();
                             map.put(from[0], new_address);
                             map.put(from[1], id);
+                            map.put(from[2], "box");
                             addr_list.add(0, map);
                             addr_adapter.notifyDataSetChanged();  // 数据变化时，哈哈
                             Toast.makeText(MainActivity.getActivity(), "添加成功", Toast.LENGTH_SHORT).show();
